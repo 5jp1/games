@@ -1,0 +1,7 @@
+# Serve githack-hosted games from this site's origin so the Key Emulator
+# can dispatch keyboard events into the game frame.
+[[redirects]]
+  from = "/gh/*"
+  to = "https://raw.githack.com/:splat"
+  status = 200
+  force = true

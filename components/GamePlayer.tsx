@@ -8,6 +8,13 @@ interface GamePlayerProps {
   onBack: () => void;
 }
 
+const GITHACK_ORIGIN = 'https://raw.githack.com/';
+
+// githack games are proxied through this site (see netlify.toml) so they share our origin,
+// which is what lets the Key Emulator send keyboard events into them.
+const getFrameSrc = (link: string) =>
+  link.startsWith(GITHACK_ORIGIN) ? `/gh/${link.slice(GITHACK_ORIGIN.length)}` : link;
+
 const GamePlayer: React.FC<GamePlayerProps> = ({ game, onBack }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showEmulator, setShowEmulator] = useState(false);
@@ -26,6 +33,11 @@ const GamePlayer: React.FC<GamePlayerProps> = ({ game, onBack }) => {
       document.exitFullscreen();
       setIsFullscreen(false);
     }
+  };
+
+  const handlePanic = () => {
+    // Force iOS to launch the installed Google Classroom application
+    window.location.href = 'googleclassroom://';
   };
 
   useEffect(() => {
@@ -65,6 +77,15 @@ const GamePlayer: React.FC<GamePlayerProps> = ({ game, onBack }) => {
           </button>
           
           <button 
+            onClick={handlePanic}
+            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-lg transition-colors flex items-center gap-2"
+            title="Panic"
+          >
+            <i className="fa-solid fa-triangle-exclamation"></i>
+            <span className="hidden sm:inline">Panic</span>
+          </button>
+
+          <button 
             onClick={toggleFullscreen}
             className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-lg transition-colors flex items-center gap-2"
           >
@@ -78,7 +99,7 @@ const GamePlayer: React.FC<GamePlayerProps> = ({ game, onBack }) => {
       <div ref={playerContainerRef} className="flex-1 relative bg-[#111] overflow-hidden">
         <iframe
           ref={iframeRef}
-          src={game.link}
+          src={getFrameSrc(game.link)}
           title={game.title}
           className="w-full h-full border-none"
           allow="fullscreen; autoplay; encrypted-media; camera; microphone"
@@ -89,7 +110,7 @@ const GamePlayer: React.FC<GamePlayerProps> = ({ game, onBack }) => {
         {showEmulator && (
           <KeyEmulator 
             onClose={() => setShowEmulator(false)} 
-            targetWindow={iframeRef.current?.contentWindow || null}
+            iframe={iframeRef.current}
           />
         )}
       </div>
